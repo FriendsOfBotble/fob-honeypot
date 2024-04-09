@@ -15,6 +15,7 @@ use FriendsOfBotble\Honeypot\Facades\Honeypot as HoneypotFacade;
 use FriendsOfBotble\Honeypot\Forms\Fields\HoneypotField;
 use FriendsOfBotble\Honeypot\Honeypot;
 use FriendsOfBotble\Honeypot\Rules\HoneypotRule;
+use Illuminate\Http\Request as IlluminateRequest;
 use Illuminate\Routing\Events\Routing;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Validation\ValidationException;
@@ -25,7 +26,9 @@ class HoneypotServiceProvider extends BaseServiceProvider
 
     public function register(): void
     {
-        $this->setNamespace('plugins/fob-honeypot');
+        $this
+            ->setNamespace('plugins/fob-honeypot')
+            ->loadAndPublishConfigurations(['permissions']);
 
         $this->registerBindings();
     }
@@ -33,7 +36,6 @@ class HoneypotServiceProvider extends BaseServiceProvider
     public function boot(): void
     {
         $this
-            ->loadAndPublishConfigurations(['permissions'])
             ->loadRoutes()
             ->loadAndPublishViews()
             ->loadAndPublishTranslations();
@@ -73,16 +75,17 @@ class HoneypotServiceProvider extends BaseServiceProvider
         });
 
         Event::listen(Routing::class, function (Routing $event) {
-            if (! HoneypotFacade::enabled()) {
+            if (! $event->request->isMethod('POST')) {
                 return;
             }
 
-            if (! $event->request->isMethod('POST')) {
+            if (! HoneypotFacade::enabled()) {
                 return;
             }
 
             add_filter('core_request_rules', function (array $rules, Request $request) {
                 HoneypotFacade::getForms();
+
                 $honeyRegistered = false;
 
                 if (HoneypotFacade::enabledForForm(HoneypotFacade::getFormByRequest($request::class))) {
@@ -104,15 +107,15 @@ class HoneypotServiceProvider extends BaseServiceProvider
             }, 128, 2);
         });
 
-        add_filter('honeypot_render', function () {
+        add_filter('form_extra_fields_render', function (?string $fields = null): ?string {
             if (! HoneypotFacade::enabled()) {
-                return;
+                return $fields;
             }
 
-            return HoneypotFacade::render();
+            return $fields . HoneypotFacade::render();
         }, 128);
 
-        add_action('honeypot_validate', function (Request $request): void {
+        add_action('form_extra_fields_validate', function (IlluminateRequest $request): void {
             if (! HoneypotFacade::enabled()) {
                 return;
             }

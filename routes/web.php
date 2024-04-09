@@ -9,7 +9,6 @@ AdminHelper::registerRoutes(function () {
         Route::get('settings/honeypot', [HoneypotSettingController::class, 'edit'])
             ->name('honeypot.settings');
 
-        Route::put('settings/honeypot', [HoneypotSettingController::class, 'update'])
-            ->name('honeypot.settings.update');
+        Route::put('settings/honeypot', [HoneypotSettingController::class, 'update']);
     });
 });

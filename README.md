@@ -36,7 +36,7 @@ Go to the **Admin Panel** and click on the **Plugins** tab. Click on the "Add ne
 1. Render the Honeypot field into your form by:
 
 ```php
-{!! apply_filters('honeypot_render') !!}
+{!! apply_filters('form_extra_fields_render', null) !!}
 ```
 
 2. Validate the Honeypot field in your controller by:
@@ -45,9 +45,10 @@ Go to the **Admin Panel** and click on the **Plugins** tab. Click on the "Add ne
 use Botble\Support\Http\Requests\Request;
 
 ...
+
 public function store(Request $request)
 {
-    do_action('honeypot_validate', $request);
+    do_action('form_extra_fields_validate', $request);
 }
 ```
 

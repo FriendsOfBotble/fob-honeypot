@@ -10,6 +10,10 @@ class HoneypotSettingController extends SettingController
 {
     public function edit()
     {
+        $this->pageTitle(
+            trans('plugins/fob-honeypot::honeypot.settings.title'),
+        );
+
         return HoneypotSettingForm::create()->renderForm();
     }
 

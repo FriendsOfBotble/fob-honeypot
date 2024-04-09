@@ -22,7 +22,6 @@ class HoneypotSettingForm extends SettingForm
         parent::setup();
 
         $this
-            ->setUrl(route('honeypot.settings'))
             ->setSectionTitle(trans('plugins/fob-honeypot::honeypot.settings.title'))
             ->setSectionDescription(trans('plugins/fob-honeypot::honeypot.settings.description'))
             ->setValidatorClass(HoneypotSettingRequest::class)
@@ -54,6 +53,11 @@ class HoneypotSettingForm extends SettingForm
                                 CheckboxFieldOption::make()
                                     ->label(trans('plugins/fob-honeypot::honeypot.settings.show_disclaimer'))
                                     ->value(Honeypot::getSetting('show_disclaimer'))
+                                    ->helperText(
+                                        trans('plugins/fob-honeypot::honeypot.settings.show_disclaimer_helper', [
+                                            'default' => 'This site is protected by Honeypot.',
+                                        ])
+                                    )
                                     ->toArray()
                             )
                             ->add(
