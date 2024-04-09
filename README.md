@@ -39,14 +39,6 @@ Go to the **Admin Panel** and click on the **Plugins** tab. Click on the "Add ne
 {!! apply_filters('honeypot_render') !!}
 ```
 
-Or add the Honeypot field to your form class manually:
-
-```php
-use FriendsOfBotble\Honeypot\Forms\Fields\HoneypotField;
-
-$form->add('honeypot', HoneypotField::class);
-```
-
 2. Validate the Honeypot field in your controller by:
 
 ```php
