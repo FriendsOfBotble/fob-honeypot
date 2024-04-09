@@ -6,7 +6,7 @@ When a submission comes in with a filled honeypot field, this package will disca
 
 Refs: [spatie/laravel-honeypot](https://github.com/spatie/laravel-honeypot)
 
-![](./screenshots/setting.png)
+![](./screenshot.png)
 
 ## Requirements
 
