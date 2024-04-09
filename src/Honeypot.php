@@ -4,6 +4,8 @@ namespace FriendsOfBotble\Honeypot;
 
 use Botble\Theme\FormFrontManager;
 use Carbon\CarbonInterface;
+use FriendsOfBotble\Honeypot\Exceptions\InvalidTimestamp;
+use FriendsOfBotble\Honeypot\Exceptions\SpamException;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Str;
 
@@ -13,19 +15,19 @@ class Honeypot
 
     protected array $requests = [];
 
-    public function unrandomizedFieldName(): string
+    public function originalFieldName(): string
     {
         return 'fob_honeypot_field';
     }
 
-    public function nameFieldName(): string
+    public function randomFieldName(): string
     {
-        return sprintf('%s_%s', $this->unrandomizedFieldName(), Str::random());
+        return sprintf('%s_%s', $this->originalFieldName(), Str::random());
     }
 
-    public function checkFieldName(string $fieldName): bool
+    public function isValidatedFieldName(string $fieldName): bool
     {
-        return Str::startsWith($fieldName, $this->unrandomizedFieldName());
+        return Str::startsWith($fieldName, $this->originalFieldName());
     }
 
     public function enabled(): bool
@@ -40,7 +42,10 @@ class Honeypot
 
     public function validFrom(): CarbonInterface
     {
-        return Date::now()->addSeconds(3);
+        $amountOfSeconds  = (int) $this->getSetting('amount_of_seconds', 3);
+        $amountOfSeconds  = $amountOfSeconds < 1 ? 1 : $amountOfSeconds;
+
+        return Date::now()->addSeconds($amountOfSeconds);
     }
 
     public function encryptedValidFrom(): string
@@ -65,12 +70,7 @@ class Honeypot
         return $this->forms;
     }
 
-    public function isEnabled(): bool
-    {
-        return (bool) $this->getSetting('enabled', false);
-    }
-
-    public function isEnabledForForm(string $form): bool
+    public function enabledForForm(string $form): bool
     {
         return (bool) setting($this->getFormSettingKey($form), false);
     }
@@ -93,5 +93,36 @@ class Honeypot
     public function getSetting(string $key, mixed $default = null): mixed
     {
         return setting($this->getSettingKey($key), $default);
+    }
+
+    public function render(): string
+    {
+        return view('plugins/fob-honeypot::honeypot')->render();
+    }
+
+    /**
+     * @throws \FriendsOfBotble\Honeypot\Exceptions\SpamException
+     */
+    public function validate(?string $value): void
+    {
+        if (empty($value)) {
+            throw new SpamException();
+        }
+
+        $validFrom = request($this->validFromFieldName());
+
+        if (! $validFrom) {
+            throw new SpamException();
+        }
+
+        try {
+            $time = new EncryptedTime($validFrom);
+        } catch (InvalidTimestamp) {
+            $time = null;
+        }
+
+        if (! $time || $time->isFuture()) {
+            throw new SpamException();
+        }
     }
 }

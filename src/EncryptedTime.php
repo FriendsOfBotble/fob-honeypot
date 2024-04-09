@@ -6,6 +6,7 @@ use Carbon\CarbonInterface;
 use DateTimeInterface;
 use FriendsOfBotble\Honeypot\Exceptions\InvalidTimestamp;
 use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Date;
 
 class EncryptedTime
@@ -16,7 +17,7 @@ class EncryptedTime
 
     public static function create(DateTimeInterface $dateTime)
     {
-        $encryptedTime = app('encrypter')->encrypt($dateTime->getTimestamp());
+        $encryptedTime = Crypt::encrypt($dateTime->getTimestamp());
 
         return new static($encryptedTime);
     }
@@ -26,7 +27,7 @@ class EncryptedTime
         $this->encryptedTime = $encryptedTime;
 
         try {
-            $timestamp = app('encrypter')->decrypt($encryptedTime);
+            $timestamp = Crypt::decrypt($encryptedTime);
         } catch (DecryptException) {
             throw InvalidTimestamp::make($encryptedTime);
         }

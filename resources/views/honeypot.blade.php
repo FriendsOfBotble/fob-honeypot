@@ -1,8 +1,8 @@
 @use(FriendsOfBotble\Honeypot\Facades\Honeypot)
 
-<div id="{{ $nameFieldName = Honeypot::nameFieldName() }}_wrap" style="display: none" aria-hidden="true">
-    <input id="{{ $nameFieldName }}"
-           name="{{ $nameFieldName }}"
+<div id="{{ $fieldName = Honeypot::randomFieldName() }}_wrap" style="display: none" aria-hidden="true">
+    <input id="{{ $fieldName }}"
+           name="{{ $fieldName }}"
            type="text"
            value="{{ Str::random(10) }}"
            autocomplete="nope"
@@ -13,7 +13,6 @@
            autocomplete="off"
            tabindex="-1">
 </div>
-
 
 @if (Honeypot::getSetting('show_disclaimer'))
     <div class="honeypot-disclaimer" style="display: block; background-color: rgb(232 233 235); border-radius: 4px; padding: 16px; margin-bottom: 16px; ">

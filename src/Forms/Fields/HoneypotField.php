@@ -8,6 +8,6 @@ class HoneypotField extends FormField
 {
     protected function getTemplate(): string
     {
-        return 'plugins/fob-honeypot::honeypot-form-fields';
+        return 'plugins/fob-honeypot::honeypot';
     }
 }

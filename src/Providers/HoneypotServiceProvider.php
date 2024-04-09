@@ -10,12 +10,14 @@ use Botble\Base\Traits\LoadAndPublishDataTrait;
 use Botble\Setting\PanelSections\SettingOthersPanelSection;
 use Botble\Support\Http\Requests\Request;
 use Botble\Theme\FormFront;
+use FriendsOfBotble\Honeypot\Exceptions\SpamException;
 use FriendsOfBotble\Honeypot\Facades\Honeypot as HoneypotFacade;
 use FriendsOfBotble\Honeypot\Forms\Fields\HoneypotField;
 use FriendsOfBotble\Honeypot\Honeypot;
 use FriendsOfBotble\Honeypot\Rules\HoneypotRule;
 use Illuminate\Routing\Events\Routing;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Validation\ValidationException;
 
 class HoneypotServiceProvider extends BaseServiceProvider
 {
@@ -56,43 +58,90 @@ class HoneypotServiceProvider extends BaseServiceProvider
             $fieldKey = 'submit';
 
             if ($form instanceof FormFront) {
-                $fieldKey = $form->has($fieldKey) ? $fieldKey : array_key_last($form->getFields());
+                $fieldKey = $form->getFormEndKey() ?: ($form->has($fieldKey) ? $fieldKey : array_key_last($form->getFields()));
             }
 
-            if (! HoneypotFacade::isEnabledForForm($form::class)) {
+            if (! HoneypotFacade::enabledForForm($form::class)) {
                 return;
             }
 
             $form->addBefore(
                 $fieldKey,
-                HoneypotFacade::nameFieldName(),
+                HoneypotFacade::randomFieldName(),
                 HoneypotField::class
             );
         });
 
-        Event::listen(Routing::class, function () {
+        Event::listen(Routing::class, function (Routing $event) {
+            if (! HoneypotFacade::enabled()) {
+                return;
+            }
+
+            if (! $event->request->isMethod('POST')) {
+                return;
+            }
+
             add_filter('core_request_rules', function (array $rules, Request $request) {
                 HoneypotFacade::getForms();
+                $honeyRegistered = false;
 
-                if (HoneypotFacade::isEnabledForForm(HoneypotFacade::getFormByRequest($request::class))) {
+                if (HoneypotFacade::enabledForForm(HoneypotFacade::getFormByRequest($request::class))) {
                     foreach ($request->all() as $key => $value) {
-                        if (! HoneypotFacade::checkFieldName($key)) {
+                        if (! HoneypotFacade::isValidatedFieldName($key)) {
                             continue;
                         }
 
-                        $rules[$key] = [new HoneypotRule()];
+                        $rules[$key] = ['required', new HoneypotRule()];
+                        $honeyRegistered = true;
+                    }
+
+                    if (! $honeyRegistered) {
+                        $rules[HoneypotFacade::randomFieldName()] = ['required', new HoneypotRule()];
                     }
                 }
 
                 return $rules;
-            }, 999, 2);
+            }, 128, 2);
         });
 
+        add_filter('honeypot_render', function () {
+            if (! HoneypotFacade::enabled()) {
+                return;
+            }
+
+            return HoneypotFacade::render();
+        }, 128);
+
+        add_action('honeypot_validate', function (Request $request): void {
+            if (! HoneypotFacade::enabled()) {
+                return;
+            }
+
+            try {
+                $honeypotValidated = false;
+
+                foreach ($request->all() as $key => $value) {
+                    if (! HoneypotFacade::isValidatedFieldName($key)) {
+                        continue;
+                    }
+
+                    HoneypotFacade::validate($value);
+                    $honeypotValidated = true;
+                }
+
+                if (! $honeypotValidated) {
+                    throw new SpamException();
+                }
+            } catch (SpamException) {
+                throw ValidationException::withMessages([
+                    HoneypotFacade::randomFieldName() => [__('plugins/fob-honeypot::honeypot.error')],
+                ]);
+            }
+        });
     }
 
     protected function registerBindings(): void
     {
-
         $this->app->singleton(Honeypot::class, fn () => new Honeypot());
     }
 }

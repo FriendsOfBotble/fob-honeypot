@@ -24,6 +24,43 @@ Go to the **Admin Panel** and click on the **Plugins** tab. Click on the "Add ne
 2. Extract the downloaded file and upload the extracted folder to the `platform/plugins` directory.
 3. Go to **Admin** > **Plugins** and click on the **Activate** button.
 
+## Usages
+
+### Via Front Forms
+
+1. `FormFront::class` will automatically add the honeypot field to your form. You don't have to do anything. Your form must be extended `FormFront::class`.
+2. Go to the Admin -> Settings -> Honeypot -> Enable Honeypot and your front forms.
+
+### Manually
+
+1. Render the Honeypot field into your form by:
+
+```php
+{!! apply_filters('honeypot_render') !!}
+```
+
+Or add the Honeypot field to your form class manually:
+
+```php
+use FriendsOfBotble\Honeypot\Forms\Fields\HoneypotField;
+
+$form->add('honeypot', HoneypotField::class);
+```
+
+2. Validate the Honeypot field in your controller by:
+
+```php
+use Botble\Support\Http\Requests\Request;
+
+...
+public function store(Request $request)
+{
+    do_action('honeypot_validate', $request);
+}
+```
+
+3. Go to the Admin -> Settings -> Honeypot -> Enable Honeypot.
+
 ## Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information what has changed recently.

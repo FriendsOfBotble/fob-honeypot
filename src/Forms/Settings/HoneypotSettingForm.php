@@ -4,8 +4,10 @@ namespace FriendsOfBotble\Honeypot\Forms\Settings;
 
 use Botble\Base\Forms\FieldOptions\CheckboxFieldOption;
 use Botble\Base\Forms\FieldOptions\LabelFieldOption;
+use Botble\Base\Forms\FieldOptions\NumberFieldOption;
 use Botble\Base\Forms\FieldOptions\OnOffFieldOption;
 use Botble\Base\Forms\Fields\LabelField;
+use Botble\Base\Forms\Fields\NumberField;
 use Botble\Base\Forms\Fields\OnOffCheckboxField;
 use Botble\Base\Forms\Fields\OnOffField;
 use Botble\Base\Forms\FormCollapse;
@@ -31,12 +33,21 @@ class HoneypotSettingForm extends SettingForm
                         OnOffField::class,
                         OnOffFieldOption::make()
                             ->label(trans('plugins/fob-honeypot::honeypot.settings.enable'))
-                            ->value(Honeypot::isEnabled())
+                            ->value(Honeypot::enabled())
                             ->toArray(),
                     )
-                    ->isOpened(Honeypot::isEnabled())
+                    ->isOpened(Honeypot::enabled())
                     ->fieldset(function (HoneypotSettingForm $form) {
                         $form
+                            ->add(
+                                Honeypot::getSettingKey('amount_of_seconds'),
+                                NumberField::class,
+                                NumberFieldOption::make()
+                                    ->label(trans('plugins/fob-honeypot::honeypot.settings.amount_of_seconds'))
+                                    ->value(Honeypot::getSetting('amount_of_seconds', 3))
+                                    ->helperText(trans('plugins/fob-honeypot::honeypot.settings.amount_of_seconds_helper'))
+                                    ->toArray()
+                            )
                             ->add(
                                 Honeypot::getSettingKey('show_disclaimer'),
                                 OnOffCheckboxField::class,
@@ -59,7 +70,7 @@ class HoneypotSettingForm extends SettingForm
                                 OnOffField::class,
                                 OnOffFieldOption::make()
                                     ->label($title)
-                                    ->value(Honeypot::isEnabledForForm($form))
+                                    ->value(Honeypot::enabledForForm($form))
                                     ->toArray()
                             );
                         }
