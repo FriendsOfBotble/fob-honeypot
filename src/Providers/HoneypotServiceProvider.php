@@ -137,7 +137,7 @@ class HoneypotServiceProvider extends BaseServiceProvider
                     HoneypotFacade::randomFieldName() => [__('plugins/fob-honeypot::honeypot.error')],
                 ]);
             }
-        });
+        }, 999);
     }
 
     protected function registerBindings(): void
