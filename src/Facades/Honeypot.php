@@ -12,15 +12,15 @@ use Illuminate\Support\Facades\Facade;
  * @method static string validFromFieldName()
  * @method static \Carbon\CarbonInterface validFrom()
  * @method static string encryptedValidFrom()
- * @method static \FriendsOfBotble\Honeypot\Honeypot registerForm(string $form, string $request, string $title)
+ * @method static static registerForm(string $form, string $request, string $title)
  * @method static array getForms()
  * @method static bool enabledForForm(string $form)
  * @method static string getFormByRequest(string $request)
- * @method string string getFormSettingKey(string $form)
- * @method string string getSettingKey(string $key)
- * @method string mixed getSetting(string $key, mixed $default = null)
+ * @method static string getFormSettingKey(string $form)
+ * @method static string getSettingKey(string $key)
+ * @method static mixed|null getSetting(string $key, mixed|null $default = null)
  * @method static string render()
- * @method static void validate(string $value)
+ * @method static void validate(string|null $value)
  *
  * @see \FriendsOfBotble\Honeypot\Honeypot
  */
