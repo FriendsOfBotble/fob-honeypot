@@ -12,6 +12,7 @@ class HoneypotSettingRequest extends Request
     {
         return [
             Honeypot::getSettingKey('enabled') => [new OnOffRule()],
+            Honeypot::getSettingKey('amount_of_seconds') => ['nullable', 'integer', 'min:1'],
             Honeypot::getSettingKey('show_disclaimer') => [new OnOffRule()],
             ...$this->getFormRules(),
         ];
